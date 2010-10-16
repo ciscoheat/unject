@@ -43,7 +43,7 @@ class BindTo implements IBindingToSyntax, implements IBindingWithSyntax
 	
 	public function withParameter(name : String, value : Dynamic)
 	{
-		kernel.setParameter(type, name, value, false);
+		kernel.setParameter(type, name, value);
 		return cast this;
 	}	
 }

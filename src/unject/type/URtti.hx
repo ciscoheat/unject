@@ -104,9 +104,16 @@ class URtti
 				h.set(f.name, f);
 		var parent = cls.superClass;
 		if(parent != null) 
-		{
+		{		
 			var pcls = Type.resolveClass(parent.path);
-			var x = Xml.parse(untyped pcls.__rtti).firstElement();
+			
+			#if !cpp
+			var rtti = untyped pcls.__rtti;
+			#else
+			var rtti = Reflect.field(pcls, "__rtti");
+			#end
+
+			var x = Xml.parse(rtti).firstElement();
 			switch(new haxe.rtti.XmlParser().processElement(x)) 
 			{
 				case TClassdecl(c):
@@ -120,12 +127,22 @@ class URtti
     
 	public static function hasInfo(cls : Class<Dynamic>) : Bool
 	{
+		#if !cpp
 		return null != untyped cls.__rtti;
+		#else
+		return Reflect.hasField(cls, "__rtti");
+		#end
 	}
 
 	public static function getClassDef(cls : Class<Dynamic>)
 	{
-		var x = Xml.parse(untyped cls.__rtti).firstElement();
+		#if !cpp
+		var rtti = untyped cls.__rtti;
+		#else
+		var rtti = Reflect.field(cls, "__rtti");
+		#end
+		
+		var x = Xml.parse(rtti).firstElement();
 		var infos = new haxe.rtti.XmlParser().processElement(x);
 
 		var cd;

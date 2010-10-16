@@ -27,7 +27,7 @@ class TestModules
 	
 	public function setup()
 	{
-		kernel = new StandardKernel([new TestModule()]);		
+		kernel = new StandardKernel([new TestModule()]);
 	}
 	
 	public function testModuleLoad()
@@ -39,18 +39,18 @@ class TestModules
 	
 	public function testNoInfos()
 	{
-		var kernel = this.kernel;
+		var k = this.kernel;
 		
-		kernel.bind(NoInfos, NoInfos);		
-		Assert.raises(function() { kernel.get(NoInfos); }, String);
+		k.bind(NoInfos, NoInfos);		
+		Assert.raises(function() { k.get(NoInfos); }, String);
 	}
 	
 	public function testNoConstructor()
 	{
-		var kernel = this.kernel;
+		var k = this.kernel;
 		
-		kernel.bind(NoConstructor, NoConstructor);
-		Assert.raises(function() { kernel.get(NoConstructor); }, String);
+		k.bind(NoConstructor, NoConstructor);
+		Assert.raises(function() { k.get(NoConstructor); }, String);
 	}
 	
 	public function testNoMappingNoConstructor()
@@ -62,9 +62,9 @@ class TestModules
 	
 	public function testNoMappingInConstructor()
 	{
-		var kernel = this.kernel;
+		var k = this.kernel;
 		
-		Assert.raises(function() { kernel.get(Japan); }, String);
+		Assert.raises(function() { k.get(Japan); }, String);
 	}
 	
 	public function testMappingToSelf()
@@ -84,8 +84,8 @@ class TestModules
 	
 	public function testWithUnBoundParameter()
 	{
-		var kernel = this.kernel;
-		Assert.raises(function() { kernel.get(Wakizachi); }, String);
+		var k = this.kernel;
+		Assert.raises(function() { k.get(Wakizachi); }, String);
 	}
 }
 

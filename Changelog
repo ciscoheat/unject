@@ -1,6 +1,11 @@
 Changelog for unject
 
-v0.1 (2010-10-13)
+v0.2 (2010-10-16)
+=================
+Features
+ - Added support for javascript, flash9, flash10.
+
+v0.1 (2010-10-15)
 =================
 Features
  - Added parameter support, for example:

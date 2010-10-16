@@ -41,7 +41,12 @@ class StandardKernel implements IKernel
 
 			var module = cast(m, IUnjectModule);
 			
+			#if !cpp
 			module.kernel = this;
+			#else
+			Reflect.setField(module, "kernel", this);
+			#end
+			
 			module.load();
 			
 			//this.modules.push(module);
@@ -116,7 +121,7 @@ class StandardKernel implements IKernel
 		bindings.set(typeName, to);
 	}
 	
-	public function setParameter(type : Class<Dynamic>, name : String, value : Dynamic, ?isLazy = false)
+	public function setParameter(type : Class<Dynamic>, name : String, value : Dynamic)
 	{
 		var typeName = Type.getClassName(type);
 		
