@@ -1,0 +1,7 @@
+Changelog for unject
+
+v0.1 (2010-10-13)
+=================
+Features
+ - Added parameter support, for example:
+   bind(IWeapon).to(Sword).withParameter("hitpoints", 100);

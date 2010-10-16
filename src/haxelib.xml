@@ -1,0 +1,10 @@
+<project name="unject" url="http://github.com/ciscoheat/unject/wiki/Description-and-Quickstart" license="BSD">
+    <user name="ciscoheat"/>
+    <tag v="dependencyInjection"/>
+    <tag v="neko"/>
+    <tag v="php"/>
+    <description>A dependency injection library for haXe, inspired by Ninject.</description>
+    <version name="0.1">
+    Added parameter support, for example: bind(IWeapon).to(Sword).withParameter("hitpoints", 100);
+    </version>
+</project>
