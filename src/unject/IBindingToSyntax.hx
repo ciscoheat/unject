@@ -7,6 +7,6 @@ package unject;
 
 interface IBindingToSyntax 
 {
-	function to(to : Class<Dynamic>) : Void; // : IBindingWithSyntax;
-	function toSelf() : Void; // : IBindingWithSyntax;
+	function to(to : Class<Dynamic>) : IBindingWithSyntax;
+	function toSelf() : IBindingWithSyntax;
 }

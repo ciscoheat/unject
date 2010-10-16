@@ -7,23 +7,32 @@ import unject.type.URtti;
  * @author Andreas Soderlund
  */
 
-typedef MethodArgument = {
+typedef RttiArgument = {
 	var t : CType;
 	var opt : Bool;
 	var name : String;
 }
- 
+
+typedef BindingArgument = {
+	var type : ClassType;
+	var name : String;
+}
+
+typedef ClassType = Class<Dynamic>;
+
 class StandardKernel implements IKernel
 {
-	var bindings : Hash<Class<Dynamic>>;
+	var bindings : Hash<ClassType>;
 	//var modules : Array<IUnjectModule>;
-	var constructors : Hash<List<Class<Dynamic>>>;
+	var constructors : Hash<List<BindingArgument>>;
+	var parameters : Hash<Hash<Dynamic>>;
 
 	public function new(modules : Array<Dynamic>)
 	{
-		this.bindings = new Hash<Class<Dynamic>>();
+		this.bindings = new Hash<ClassType>();
 		//this.modules = new Array<IUnjectModule>();
-		this.constructors = new Hash<List<Class<Dynamic>>>();
+		this.constructors = new Hash<List<BindingArgument>>();
+		this.parameters = new Hash<Hash<Dynamic>>();
 
 		for (m in modules)
 		{
@@ -41,26 +50,42 @@ class StandardKernel implements IKernel
 	
 	public function get<T>(type : Class<T>) : T 
 	{
-		return Type.createInstance(type, parameters(type));
+		return Type.createInstance(type, resolveConstructorParameters(type));
 	}
 	
-	function parameters(type : Class<Dynamic>) : Array<Dynamic>
+	function resolveConstructorParameters(type : Class<Dynamic>) : Array<Dynamic>
 	{
 		var typeName = Type.getClassName(type);
 		
 		if (!constructors.exists(typeName))
 			constructors.set(typeName, getConstructorParams(type));
 
-		var params = constructors.get(typeName);			
+		var params = constructors.get(typeName);		
 		if (params.length == 0) return [];
-		
+
 		var self = this;
-		return Lambda.array(Lambda.map(params, function(c : Class<Dynamic>) {
-			return Type.createInstance(c, self.parameters(c));
+		return Lambda.array(Lambda.map(params, function(a : BindingArgument)
+		{
+			if (self.hasParameter(typeName, a.name))
+				return self.getParameter(typeName, a.name);
+			else if(a.type != null)
+				return Type.createInstance(a.type, self.resolveConstructorParameters(a.type));
+			else
+				throw "No binding found for parameter '" + a.name + "' on class " + typeName;
 		}));
 	}
 	
-	function getConstructorParams(type : Class<Dynamic>) : List<Class<Dynamic>>
+	function getParameter(typeName : String, parameterName : String)
+	{
+		return parameters.get(typeName).get(parameterName);
+	}
+	
+	function hasParameter(typeName : String, parameterName : String)
+	{
+		return parameters.exists(typeName) && parameters.get(typeName).exists(parameterName);
+	}
+	
+	function getConstructorParams(type : Class<Dynamic>) : List<BindingArgument>
 	{
 		if (!URtti.hasInfo(type))
 			throw "Class " + Type.getClassName(type) + " must implement haxe.rtti.Infos";
@@ -72,13 +97,11 @@ class StandardKernel implements IKernel
 			
 		var self = this;
 		
-		return Lambda.map(URtti.methodArguments(fields.get("new")), function(arg : MethodArgument) {
+		return Lambda.map(URtti.methodArguments(fields.get("new")), function(arg : RttiArgument) {
 			switch(arg.t)
 			{
-				case CClass(name, params):
-					return self.bindings.exists(name)
-						? self.bindings.get(name)
-						: throw "Could not find mapping for class " + name;
+				case CClass(name, params), CEnum(name, params):
+					return {type: self.bindings.get(name), name: arg.name}
 					
 				default:
 					throw "Parameter type not supported: " + arg.t;
@@ -91,5 +114,16 @@ class StandardKernel implements IKernel
 		var typeName = Type.getClassName(type);
 		
 		bindings.set(typeName, to);
+	}
+	
+	public function setParameter(type : Class<Dynamic>, name : String, value : Dynamic, ?isLazy = false)
+	{
+		var typeName = Type.getClassName(type);
+		
+		if (!parameters.exists(typeName))
+			parameters.set(typeName, new Hash<Dynamic>());
+		
+		//trace("Parameter " + name + " for " + typeName + " set to " + value);			
+		parameters.get(typeName).set(name, value);
 	}
 }

@@ -74,6 +74,19 @@ class TestModules
 		Assert.equals("Throws a fireball into the air.", ninja.doMagic());
 		Assert.equals("Chopped the ronin in half. (Sneaky)", ninja.sneakAttack("the ronin"));
 	}
+	
+	public function testWithParameter()
+	{
+		var katana = kernel.get(Katana);
+		Assert.equals(100, katana.sharpness);
+		Assert.equals(true, katana.used);
+	}
+	
+	public function testWithUnBoundParameter()
+	{
+		var kernel = this.kernel;
+		Assert.raises(function() { kernel.get(Wakizachi); }, String);
+	}
 }
 
 ///// Test classes ////////////////////////////////
@@ -86,11 +99,32 @@ class TestModule extends UnjectModule
 		bind(IMagic).to(Fireball);
 		
 		bind(Ninja).toSelf();
+		
+		bind(Katana).toSelf()
+			.withParameter("sharpness", 100)
+			.withParameter("used", true);
 	}
 }
 
 class NoInfos { }
 class NoConstructor implements Infos { }
+
+class Wakizachi implements Infos
+{
+	public function new(sharpness : Int) {}
+}
+
+class Katana implements Infos
+{
+	public var sharpness : Int;
+	public var used : Bool;
+	
+	public function new(sharpness : Int, used : Bool)
+	{
+		this.sharpness = sharpness;
+		this.used = used;
+	}
+}
 
 class Ninja implements Infos
 {

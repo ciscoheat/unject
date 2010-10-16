@@ -7,5 +7,5 @@ package unject;
 
 interface IBindingWithSyntax 
 {
-	function withParameter(parameter : String, value : Dynamic) : Void;
+	function withParameter(parameter : String, value : Dynamic) : IBindingWithSyntax;
 }
