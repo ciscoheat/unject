@@ -36,14 +36,16 @@ class TestModules
 		
 		Assert.equals("Chopped the evildoers in half.", samurai.attack("the evildoers"));
 	}
-	
+
+	/*
 	public function testNoInfos()
 	{
 		var k = this.kernel;
 		
 		k.bind(NoInfos, NoInfos);
-		Assert.raises(function() { k.get(NoInfos); }, String);
+		Assert.raises(function() { trace(k.get(NoInfos)); }, String);
 	}
+	*/
 	
 	public function testNoConstructor()
 	{
@@ -109,8 +111,15 @@ class TestModules
 		var k = this.kernel;		
 		k.bind(IWeapon, MagicSword);
 		
+		#if (js || flash)
+		Assert.is(k.get(IWeapon), MagicSword);
+		#else
+		// Flash and js manages to resolve this because of its default values.
+		// Other platforms will complain on not enough parameters when instantiating object.
 		Assert.raises(function() { k.get(IWeapon); }, String);
-		Assert.raises(function() { k.get(MagicSword); }, String);
+		#end
+		
+		Assert.raises(function() { trace(k.get(MagicSword)); }, String);
 	}	
 }
 
@@ -121,9 +130,12 @@ class TestModule extends UnjectModule
 	public override function load()
 	{
 		bind(IWeapon).to(Sword);
+		
 		bind(IMagic).to(Fireball).inSingletonScope();
 		
 		bind(Ninja).toSelf();
+		bind(Samurai).toSelf();
+		bind(Sword).toSelf();
 		
 		bind(Katana).toSelf()
 			.withParameter("sharpness", 100)
@@ -189,7 +201,8 @@ class Samurai implements Infos
 }
 
 // Should not be mapped
-interface IShogun {}
+interface IShogun
+{}
 
 class Japan implements Infos
 {

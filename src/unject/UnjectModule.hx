@@ -18,7 +18,7 @@ class UnjectModule implements IUnjectModule
 	}	
 }
 
-class BindTo implements IBindingToSyntax, implements IBindingWithSyntax, implements IBindingInSyntax
+class BindTo implements IBindingToSyntax, implements IBindingWithInSyntax
 {
 	var kernel : IKernel;
 	var type : Class<Dynamic>;
@@ -33,13 +33,13 @@ class BindTo implements IBindingToSyntax, implements IBindingWithSyntax, impleme
 	public function to(to : Class<Dynamic>)
 	{
 		kernel.bind(type, to);
-		return cast this;
+		return cast(this, IBindingWithInSyntax);
 	}
 	
 	public function toSelf()
 	{
 		kernel.bind(type, type);
-		return cast this;
+		return cast(this, IBindingWithInSyntax);
 	}
 	
 	public function withParameter(name : String, value : Dynamic)

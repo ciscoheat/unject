@@ -37,35 +37,47 @@ class StandardKernel implements IKernel
 		//this.modules = new Array<IUnjectModule>();
 		this.constructors = new Hash<List<BindingArgument>>();
 		this.parameters = new Hash<Hash<Dynamic>>();
-
+		
 		for (m in modules)
 		{
 			if (!Std.is(m, IUnjectModule))
 				throw "Module must be a IUnjectModule.";
 
 			var module = cast(m, IUnjectModule);
-			
+
 			#if !cpp
 			module.kernel = this;
 			#else
 			Reflect.setField(module, "kernel", this);
 			#end
-			
+
 			module.load();
 			
 			//this.modules.push(module);
-		}
+		}		
 	}
 	
 	public function get<T>(type : Class<T>) : T 
 	{
 		var typeName = Type.getClassName(type);
+		if (!bindings.exists(typeName))
+			throw typeName + " has not been bound to any class.";
+			
+		return internalGet(type);
+	}
+
+	function internalGet<T>(type : Class<T>) : T 
+	{
+		var typeName = Type.getClassName(type);		
 		var binding = bindings.exists(typeName) ? bindings.get(typeName) : type;
 		var scope = scopes.exists(typeName) ? scopes.get(typeName) : Scope.transient;
 		
-		var self = this;		
+		var self = this;
 		var instance = function()
 		{
+			if (!self.bindings.exists(typeName) && Type.resolveClass(typeName) == null)
+				throw typeName + " is an unbound interface and cannot be instantiated.";
+
 			try
 			{
 				return Type.createInstance(binding, self.resolveConstructorParameters(binding));
@@ -79,7 +91,7 @@ class StandardKernel implements IKernel
 					#if neko
 					return neko.Lib.rethrow(e);
 					#elseif php
-					return php.Lib.rethrow(e);
+					return cast php.Lib.rethrow(e);
 					#else
 					throw e;
 					#end
@@ -116,7 +128,7 @@ class StandardKernel implements IKernel
 			if (self.hasParameter(typeName, a.name))
 				return self.getParameter(typeName, a.name);
 			else if(a.type != null)
-				return self.get(a.type);
+				return self.internalGet(a.type);
 			else
 				throw "No binding found for parameter '" + a.name + "' on class " + typeName;
 		}));
@@ -134,6 +146,8 @@ class StandardKernel implements IKernel
 	
 	function getConstructorParams(type : Class<Dynamic>) : List<BindingArgument>
 	{
+		//trace("Get constructor params for " + Type.getClassName(type));
+
 		// If an interface has no infos, try to auto-resolve it by using a parameterless constructor.
 		if (!URtti.hasInfo(type))
 			return new List<BindingArgument>();
@@ -142,14 +156,23 @@ class StandardKernel implements IKernel
 		
 		if (!fields.exists("new"))
 			throw "No constructor found on class " + Type.getClassName(type);
-			
+						
 		var self = this;
 		
 		return Lambda.map(URtti.methodArguments(fields.get("new")), function(arg : RttiArgument) {
 			switch(arg.t)
 			{
 				case CClass(name, params), CEnum(name, params):
-					return {type: Type.resolveClass(name), name: arg.name}
+					var resolved = Type.resolveClass(name);
+					
+					#if php
+					// Haxe/PHP cannot resolve interfaces, so a workaround is needed.
+					if (resolved == null)
+						resolved = untyped __call__("_hx_qtype", name);
+					#end
+					
+					//trace("Resolved type: " + name);
+					return { type: resolved, name: arg.name };
 					
 				default:
 					throw "Parameter type not supported: " + arg.t;
