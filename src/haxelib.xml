@@ -3,7 +3,7 @@
     <tag v="cross"/>
     <tag v="dependencyInjection"/>
     <description>A dependency injection library for haXe, inspired by Ninject.</description>
-    <version name="0.2">
-    Added support for javascript, flash9, flash10.
+    <version name="0.3">
+    Added singleton scope for bindings: bind(IWeapon).to(Sword).inSingletonScope();
     </version>
 </project>

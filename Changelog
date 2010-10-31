@@ -1,5 +1,11 @@
 Changelog for unject
 
+v0.3 (2010-10-31)
+=================
+Features
+ - Added singleton scope for bindings:
+   bind(IWeapon).to(Sword).inSingletonScope();
+
 v0.2 (2010-10-16)
 =================
 Features
