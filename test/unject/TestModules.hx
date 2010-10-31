@@ -37,15 +37,18 @@ class TestModules
 		Assert.equals("Chopped the evildoers in half.", samurai.attack("the evildoers"));
 	}
 
-	/*
 	public function testNoInfos()
 	{
-		var k = this.kernel;
-		
+		var k = this.kernel;		
 		k.bind(NoInfos, NoInfos);
+		
+		// Neko is behaving best and won't accept a class without a constructor.
+		#if neko
 		Assert.raises(function() { trace(k.get(NoInfos)); }, String);
+		#else
+		Assert.isTrue(Std.is(k.get(NoInfos), NoInfos));
+		#end
 	}
-	*/
 	
 	public function testNoConstructor()
 	{
@@ -66,7 +69,13 @@ class TestModules
 	{
 		var k = this.kernel;
 		
+		#if !js
 		Assert.raises(function() { k.get(Japan); }, String);
+		#else
+		// Javascript manages to resolve this because of its default values.
+		Assert.isTrue(Std.is(k.get(Japan), Japan));
+		Assert.isTrue(Std.is(k.get(Japan).shogun, IShogun));
+		#end
 	}
 	
 	public function testMappingToSelf()
@@ -87,7 +96,7 @@ class TestModules
 	public function testWithUnBoundParameter()
 	{
 		var k = this.kernel;
-		Assert.raises(function() { k.get(Wakizachi); }, String);
+		Assert.raises(function() { trace(k.get(Wakizachi).sharpness); }, String);
 	}
 
 	public function testGetInterface()
@@ -111,15 +120,15 @@ class TestModules
 		var k = this.kernel;		
 		k.bind(IWeapon, MagicSword);
 		
+		// Flash and js manages to resolve this because of their default value handling.
+		// Other platforms will complain on not enough constructor parameters.
 		#if (js || flash)
 		Assert.is(k.get(IWeapon), MagicSword);
+		Assert.is(k.get(MagicSword), MagicSword);
 		#else
-		// Flash and js manages to resolve this because of its default values.
-		// Other platforms will complain on not enough parameters when instantiating object.
 		Assert.raises(function() { k.get(IWeapon); }, String);
+		Assert.raises(function() { k.get(MagicSword); }, String);
 		#end
-		
-		Assert.raises(function() { trace(k.get(MagicSword)); }, String);
 	}	
 }
 
@@ -148,7 +157,12 @@ class NoConstructor implements Infos { }
 
 class Wakizachi implements Infos
 {
-	public function new(sharpness : Int) {}
+	public var sharpness(default, null) : Int;
+	
+	public function new(sharpness : Int)
+	{
+		this.sharpness = sharpness;
+	}
 }
 
 class Katana implements Infos
@@ -202,11 +216,18 @@ class Samurai implements Infos
 
 // Should not be mapped
 interface IShogun
-{}
+{
+	public function rule() : Void;
+}
 
 class Japan implements Infos
 {
-	public function new(shogun : IShogun) {}
+	public var shogun(default, null) : IShogun;
+	
+	public function new(shogun : IShogun)
+	{
+		this.shogun = shogun;
+	}
 }
 
 interface IWeapon

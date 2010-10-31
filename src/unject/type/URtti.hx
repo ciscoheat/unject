@@ -4,6 +4,21 @@ import haxe.rtti.CType;
 
 class URtti
 {
+	public static function isValueType(c : Dynamic)
+	{
+		if (!Std.is(c, Class))
+		{			
+			switch(Type.typeof(c))
+			{
+				case TClass(cls): c = cls;				
+				default: return true;
+			}
+		}
+		
+		var name = Type.getClassName(cast c);
+		return name == "Int" || name == "Float" || name == "String";
+	}
+	
 	public static function typeName(type : CType, opt : Bool) : String 
 	{
 		switch(type) 

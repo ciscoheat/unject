@@ -59,16 +59,18 @@ class StandardKernel implements IKernel
 	
 	public function get<T>(type : Class<T>) : T 
 	{
+		/*
 		var typeName = Type.getClassName(type);
 		if (!bindings.exists(typeName))
 			throw typeName + " has not been bound to any class.";
+		*/
 			
 		return internalGet(type);
 	}
 
 	function internalGet<T>(type : Class<T>) : T 
 	{
-		var typeName = Type.getClassName(type);		
+		var typeName = Type.getClassName(type);
 		var binding = bindings.exists(typeName) ? bindings.get(typeName) : type;
 		var scope = scopes.exists(typeName) ? scopes.get(typeName) : Scope.transient;
 		
@@ -82,7 +84,7 @@ class StandardKernel implements IKernel
 			{
 				return Type.createInstance(binding, self.resolveConstructorParameters(binding));
 			}
-			catch (e : String)
+			catch (e : Dynamic)
 			{
 				if(!URtti.hasInfo(binding))
 					throw "Class " + typeName + " must implement haxe.rtti.Infos";
@@ -119,7 +121,7 @@ class StandardKernel implements IKernel
 		if (!constructors.exists(typeName))
 			constructors.set(typeName, getConstructorParams(type));
 
-		var params = constructors.get(typeName);		
+		var params = constructors.get(typeName);
 		if (params.length == 0) return [];
 
 		var self = this;
@@ -127,7 +129,7 @@ class StandardKernel implements IKernel
 		{
 			if (self.hasParameter(typeName, a.name))
 				return self.getParameter(typeName, a.name);
-			else if(a.type != null)
+			else if(a.type != null && !URtti.isValueType(a.type))
 				return self.internalGet(a.type);
 			else
 				throw "No binding found for parameter '" + a.name + "' on class " + typeName;

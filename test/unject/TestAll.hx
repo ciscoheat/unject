@@ -8,6 +8,7 @@ class TestAll
 	public static function addTests(runner : Runner)
 	{
 		TestModules.addTests(runner);
+		TestIsValueType.addTests(runner);
 	}
 	
 	public static function main()
