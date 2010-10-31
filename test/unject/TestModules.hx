@@ -41,7 +41,7 @@ class TestModules
 	{
 		var k = this.kernel;
 		
-		k.bind(NoInfos, NoInfos);		
+		k.bind(NoInfos, NoInfos);
 		Assert.raises(function() { k.get(NoInfos); }, String);
 	}
 	
@@ -87,6 +87,31 @@ class TestModules
 		var k = this.kernel;
 		Assert.raises(function() { k.get(Wakizachi); }, String);
 	}
+
+	public function testGetInterface()
+	{
+		// This also tests autobinding since Fireball has a parameterless constructor.
+		var magic = kernel.get(IMagic);
+		Assert.isTrue(Std.is(magic, Fireball));
+	}
+	
+	public function testSingletonScope()
+	{
+		var n1 = kernel.get(Ninja);
+		var n2 = kernel.get(Ninja);
+
+		Assert.notEquals(n1, n2);
+		Assert.equals(n1.magic, n2.magic);
+	}
+	
+	public function testAutoBindingFailing()
+	{
+		var k = this.kernel;		
+		k.bind(IWeapon, MagicSword);
+		
+		Assert.raises(function() { k.get(IWeapon); }, String);
+		Assert.raises(function() { k.get(MagicSword); }, String);
+	}	
 }
 
 ///// Test classes ////////////////////////////////
@@ -96,7 +121,7 @@ class TestModule extends UnjectModule
 	public override function load()
 	{
 		bind(IWeapon).to(Sword);
-		bind(IMagic).to(Fireball);
+		bind(IMagic).to(Fireball).inSingletonScope();
 		
 		bind(Ninja).toSelf();
 		
@@ -129,7 +154,7 @@ class Katana implements Infos
 class Ninja implements Infos
 {
 	var weapon : IWeapon;
-	var magic : IMagic;
+	public var magic : IMagic;
 	
 	public function new(weapon : IWeapon, magic : IMagic)
 	{
@@ -176,7 +201,7 @@ interface IWeapon
 	function hit(target : String) : String;
 }
 
-interface IMagic
+interface IMagic implements Infos
 {
 	function castSpell() : String;
 }
@@ -194,6 +219,16 @@ class Fireball implements IMagic, implements Infos
 class Sword implements IWeapon, implements Infos
 {
 	public function new();
+	
+	public function hit(target : String)
+	{
+		return "Chopped " + target + " in half.";
+	}
+}
+
+class MagicSword implements IWeapon
+{
+	public function new(boundSpell : IMagic);
 	
 	public function hit(target : String)
 	{

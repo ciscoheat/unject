@@ -18,10 +18,11 @@ class UnjectModule implements IUnjectModule
 	}	
 }
 
-class BindTo implements IBindingToSyntax, implements IBindingWithSyntax
+class BindTo implements IBindingToSyntax, implements IBindingWithSyntax, implements IBindingInSyntax
 {
 	var kernel : IKernel;
 	var type : Class<Dynamic>;
+	var scope : Scope;
 	
 	public function new(kernel : IKernel, type : Class<Dynamic>)
 	{
@@ -45,5 +46,15 @@ class BindTo implements IBindingToSyntax, implements IBindingWithSyntax
 	{
 		kernel.setParameter(type, name, value);
 		return cast this;
-	}	
+	}
+	
+	public function inSingletonScope() : Void
+	{
+		kernel.setScope(type, Scope.singleton);
+	}
+	
+	public function inTransientScope() : Void
+	{
+		kernel.setScope(type, Scope.transient);
+	}
 }
